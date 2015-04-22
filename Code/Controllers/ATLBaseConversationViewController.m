@@ -18,15 +18,15 @@
 //  limitations under the License.
 //
 
+#import <Atlas/Views/ATLConversationView.h>
 #import "ATLBaseConversationViewController.h"
-#import "ATLConversationView.h"
 
 @interface ATLBaseConversationViewController ()
 
 @property (nonatomic) ATLConversationView *view;
 @property (nonatomic) NSMutableArray *typingParticipantIDs;
 @property (nonatomic) NSLayoutConstraint *typingIndicatorViewBottomConstraint;
-@property (nonatomic) CGFloat keyboardHeight;
+@property (nonatomic, readwrite) CGFloat keyboardHeight;
 @property (nonatomic, getter=isFirstAppearance) BOOL firstAppearance;
 
 @end
@@ -71,7 +71,6 @@ static CGFloat const ATLMaxScrollDistanceFromBottom = 150;
     [super viewDidLoad];
     
     // Add message input tool bar
-    self.messageInputToolbar = [ATLMessageInputToolbar new];
     // An apparent system bug causes a view controller to not be deallocated
     // if the view controller's own inputAccessoryView property is used.
     self.view.inputAccessoryView = self.messageInputToolbar;
@@ -92,6 +91,17 @@ static CGFloat const ATLMaxScrollDistanceFromBottom = 150;
         [self configureAddressbarLayoutConstraints];
     }
     [self atl_baseRegisterForNotifications];
+}
+
+- (ATLMessageInputToolbar *)messageInputToolbar {
+    if (!_messageInputToolbar){
+        _messageInputToolbar = [self makeMessageInputToolbar];
+    }
+    return _messageInputToolbar;
+}
+
+- (ATLMessageInputToolbar *)makeMessageInputToolbar {
+    return [ATLMessageInputToolbar new];
 }
 
 - (void)viewWillAppear:(BOOL)animated

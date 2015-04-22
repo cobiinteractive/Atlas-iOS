@@ -204,6 +204,12 @@
  */
 - (void)reloadCellsForMessagesSentByParticipantWithIdentitifier:(NSString *)participantIdentifier;
 
+- (NSOrderedSet *)messagesForMediaAttachments:(NSArray *)mediaAttachments;
+
+- (NSOrderedSet *)defaultMessagesForMediaAttachments:(NSArray *)mediaAttachments;
+
+- (void)sendMessage:(LYRMessage *)message;
+
 /**
  @abstract Informs the reciever that it should send a message with the current location of the device.
  @discussion The controller manages updating the current location of the device and sending a message with an `ATLMIMETypeLocation` MIMEType.

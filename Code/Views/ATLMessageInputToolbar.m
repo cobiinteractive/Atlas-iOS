@@ -22,15 +22,13 @@
 #import "ATLMediaAttachment.h"
 #import "ATLMessagingUtilities.h"
 
+
 NSString *const ATLMessageInputToolbarDidChangeHeightNotification = @"ATLMessageInputToolbarDidChangeHeightNotification";
 
 @interface ATLMessageInputToolbar () <UITextViewDelegate>
 
 @property (nonatomic) NSArray *mediaAttachments;
 @property (nonatomic, copy) NSAttributedString *attributedStringForMessageParts;
-@property (nonatomic) UITextView *dummyTextView;
-@property (nonatomic) CGFloat textViewMaxHeight;
-@property (nonatomic) CGFloat buttonCenterY;
 
 @end
 
@@ -42,15 +40,6 @@ NSString *const ATLMessageInputToolbarCameraButton  = @"Message Input Toolbar Ca
 NSString *const ATLMessageInputToolbarLocationButton  = @"Message Input Toolbar Location Button";
 NSString *const ATLMessageInputToolbarSendButton  = @"Message Input Toolbar Send Button";
 
-// Compose View Margin Constants
-static CGFloat const ATLLeftButtonHorizontalMargin = 6.0f;
-static CGFloat const ATLRightButtonHorizontalMargin = 4.0f;
-static CGFloat const ATLVerticalMargin = 7.0f;
-
-// Compose View Button Constants
-static CGFloat const ATLLeftAccessoryButtonWidth = 40.0f;
-static CGFloat const ATLRightAccessoryButtonWidth = 46.0f;
-static CGFloat const ATLButtonHeight = 28.0f;
 
 - (id)init
 {
@@ -60,37 +49,28 @@ static CGFloat const ATLButtonHeight = 28.0f;
         self.translatesAutoresizingMaskIntoConstraints = NO;
         self.autoresizingMask = UIViewAutoresizingFlexibleWidth;
 
-        self.leftAccessoryButton = [[UIButton alloc] init];
-        self.leftAccessoryButton.accessibilityLabel = ATLMessageInputToolbarCameraButton;
-        self.leftAccessoryButton.contentMode = UIViewContentModeScaleAspectFit;
-        [self.leftAccessoryButton setImage:[UIImage imageNamed:@"AtlasResource.bundle/camera_dark"] forState:UIControlStateNormal];
-        [self.leftAccessoryButton addTarget:self action:@selector(leftAccessoryButtonTapped) forControlEvents:UIControlEventTouchUpInside];
         [self addSubview:self.leftAccessoryButton];
         
-        self.textInputView = [[ATLMessageComposeTextView alloc] init];
-        self.textInputView.accessibilityLabel = ATLMessageInputToolbarTextInputView;
-        self.textInputView.delegate = self;
-        self.textInputView.layer.borderColor = ATLGrayColor().CGColor;
-        self.textInputView.layer.borderWidth = 0.5;
-        self.textInputView.layer.cornerRadius = 5.0f;
         [self addSubview:self.textInputView];
         
-        self.rightAccessoryButton = [[UIButton alloc] init];
-        [self.rightAccessoryButton addTarget:self action:@selector(rightAccessoryButtonTapped) forControlEvents:UIControlEventTouchUpInside];
         [self addSubview:self.rightAccessoryButton];
         [self configureRightAccessoryButtonState];
 
         // Calling sizeThatFits: or contentSize on the displayed UITextView causes the cursor's position to momentarily appear out of place and prevent scrolling to the selected range. So we use another text view for height calculations.
-        self.dummyTextView = [[ATLMessageComposeTextView alloc] init];
+        [self.dummyTextView description];
         self.maxNumberOfLines = 8;
     }
     return self;
 }
 
+
 - (void)layoutSubviews
 {
     [super layoutSubviews];
+    [self layoutToolbarViews];
+}
 
+- (void)layoutToolbarViews {
     // We layout the views manually since using Auto Layout seems to cause issues in this context (i.e. an auto height resizing text view in an input accessory view) especially with iOS 7.1.
     CGRect frame = self.frame;
     CGRect leftButtonFrame = self.leftAccessoryButton.frame;
@@ -115,14 +95,14 @@ static CGFloat const ATLButtonHeight = 28.0f;
 
     frame.size.height = CGRectGetHeight(textViewFrame) + ATLVerticalMargin * 2;
     frame.origin.y -= frame.size.height - CGRectGetHeight(self.frame);
- 
+
     // Only calculate button centerY once to anchor it to bottom of bar.
     if (!self.buttonCenterY) {
         self.buttonCenterY = (CGRectGetHeight(frame) - CGRectGetHeight(leftButtonFrame)) / 2;
     }
     leftButtonFrame.origin.y = frame.size.height - leftButtonFrame.size.height - self.buttonCenterY;
     rightButtonFrame.origin.y = frame.size.height - rightButtonFrame.size.height - self.buttonCenterY;
-    
+
     BOOL heightChanged = CGRectGetHeight(textViewFrame) != CGRectGetHeight(self.textInputView.frame);
 
     self.leftAccessoryButton.frame = leftButtonFrame;
@@ -150,6 +130,52 @@ static CGFloat const ATLButtonHeight = 28.0f;
         return;
     }
 }
+
+#pragma mark - Views
+
+- (UIButton *)leftAccessoryButton {
+    if (!_leftAccessoryButton){
+        _leftAccessoryButton = [[UIButton alloc] init];
+        _leftAccessoryButton.accessibilityLabel = ATLMessageInputToolbarCameraButton;
+        _leftAccessoryButton.contentMode = UIViewContentModeScaleAspectFit;
+        [_leftAccessoryButton setImage:[UIImage imageNamed:@"AtlasResource.bundle/camera_dark"]
+                              forState:UIControlStateNormal];
+        [_leftAccessoryButton addTarget:self action:@selector(leftAccessoryButtonTapped)
+                       forControlEvents:UIControlEventTouchUpInside];
+    }
+    return _leftAccessoryButton;
+}
+
+- (ATLMessageComposeTextView *)textInputView {
+    if (!_textInputView){
+        _textInputView = [[ATLMessageComposeTextView alloc] init];
+        _textInputView.accessibilityLabel = ATLMessageInputToolbarTextInputView;
+        _textInputView.delegate = self;
+        _textInputView.layer.borderColor = ATLGrayColor().CGColor;
+        _textInputView.layer.borderWidth = 0.5;
+        _textInputView.layer.cornerRadius = 5.0f;
+    }
+    return _textInputView;
+}
+
+- (UITextView *)dummyTextView {
+    if (!_dummyTextView){
+        _dummyTextView = [[ATLMessageComposeTextView alloc] init];
+    }
+    return _dummyTextView;
+}
+
+
+- (UIButton *)rightAccessoryButton {
+    if (!_rightAccessoryButton){
+        _rightAccessoryButton = [[UIButton alloc] init];
+        [_rightAccessoryButton addTarget:self action:@selector(rightAccessoryButtonTapped)
+                        forControlEvents:UIControlEventTouchUpInside];
+    }
+    return _rightAccessoryButton;
+}
+
+
 
 #pragma mark - Public Methods
 

@@ -33,6 +33,8 @@
 /// @name Accessing User Interface Components
 ///---------------------------------------------------------------
 
+@property (nonatomic, readonly) CGFloat keyboardHeight;
+
 /**
  @abstract The `ATLAddressBarViewController` displayed for addressing new conversations or displaying names of current conversation participants.
  */
@@ -72,6 +74,8 @@
 /// @name Managing Scrolling
 ///-------------------------------------
 
+- (ATLMessageInputToolbar *)makeMessageInputToolbar;
+
 /**
  @abstract Returns a boolean value to determines whether or not the controller should scroll the collection view content to the bottom.
  @discussion Returns NO if the content is further than 150px from the bottom of the collection view or the collection view is currently scrolling.
@@ -88,5 +92,6 @@
  @abstract Calculates the bottom offset of the collection view taking into account any current insets caused by `addressBarController`, `typingIndicatorViewController` or `messageInputToolbar`.
  */
 - (CGPoint)bottomOffsetForContentSize:(CGSize)contentSize;
+
 
 @end

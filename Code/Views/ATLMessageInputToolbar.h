@@ -26,6 +26,25 @@
 
 extern NSString *const ATLMessageInputToolbarDidChangeHeightNotification;
 extern NSString *const ATLMessageInputToolbarAccessibilityLabel;
+extern NSString *const ATLMessageInputToolbarAccessibilityLabel;
+extern NSString *const ATLMessageInputToolbarTextInputView;
+extern NSString *const ATLMessageInputToolbarCameraButton;
+extern NSString *const ATLMessageInputToolbarLocationButton;
+extern NSString *const ATLMessageInputToolbarSendButton;
+
+
+// Compose View Margin Constants
+static CGFloat const ATLLeftButtonHorizontalMargin = 6.0f;
+static CGFloat const ATLRightButtonHorizontalMargin = 4.0f;
+static CGFloat const ATLVerticalMargin = 7.0f;
+
+// Compose View Button Constants
+static CGFloat const ATLLeftAccessoryButtonWidth = 40.0f;
+static CGFloat const ATLRightAccessoryButtonWidth = 46.0f;
+static CGFloat const ATLButtonHeight = 28.0f;
+
+
+
 
 //---------------------------------
 // Message Input Toolbar Delegate
@@ -45,9 +64,17 @@ extern NSString *const ATLMessageInputToolbarAccessibilityLabel;
 /**
  @abstract Notifies the receiver that the left accessory button was tapped.
  */
-- (void)messageInputToolbar:(ATLMessageInputToolbar *)messageInputToolbar didTapLeftAccessoryButton:(UIButton *)leftAccessoryButton;
+- (void)messageInputToolbar:(ATLMessageInputToolbar *)messageInputToolbar
+  didTapLeftAccessoryButton:(UIButton *)leftAccessoryButton;
+
 
 @optional
+
+- (void)messageInputToolbar:(ATLMessageInputToolbar *)messageInputToolbar
+          didSelectCapemoji:(NSInteger *)imageIndex;
+
+- (void)messageInputToolbar:(ATLMessageInputToolbar *)messageInputToolbar
+       didTapLocationButton:(UIButton *)locationButton;
 
 /**
  @abstract Notifies the receiver that typing has occurred.
@@ -69,11 +96,21 @@ extern NSString *const ATLMessageInputToolbarAccessibilityLabel;
  caches any content provided and exposes that content back to a consuming object via the
  mediaAttachments property.
  */
-@interface ATLMessageInputToolbar : UIToolbar
+@interface ATLMessageInputToolbar : UIToolbar {
+    UIButton *_leftAccessoryButton;
+    UIButton *_rightAccessoryButton;
+}
+
+@property (nonatomic) UITextView *dummyTextView;
+@property (nonatomic) CGFloat textViewMaxHeight;
+@property (nonatomic) CGFloat buttonCenterY;
+
 
 //------------------------------
 // Content Display Methods
 //------------------------------
+
+- (void)layoutToolbarViews;
 
 /**
  @abstract Inserts the mediaAttachment as an attributed text attachment which is inlined with text.
@@ -87,6 +124,8 @@ extern NSString *const ATLMessageInputToolbarAccessibilityLabel;
 //-----------------------------
 // UI Customization
 //-----------------------------
+
+- (void)configureRightAccessoryButtonState;
 
 /**
  @abstract The left accessory button for the view. 

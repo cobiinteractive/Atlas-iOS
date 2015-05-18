@@ -526,17 +526,43 @@ static NSString *const ATLPushNotificationSoundName = @"layerbell.caf";
     NSMutableOrderedSet *messages = [NSMutableOrderedSet new];
     for (ATLMediaAttachment *attachment in mediaAttachments){
         NSArray *messageParts = ATLMessagePartsWithMediaAttachment(attachment);
-        LYRMessage *message = [self messageForMessageParts:messageParts pushText:attachment.textRepresentation];
-        if (message)[messages addObject:message];
+        LYRMessage *message = [self messageForMessageParts:messageParts pushText:attachment.textRepresentation contentType:attachment.mediaType];
+        if (message){
+            [messages addObject:message];
+        }
     }
     return messages;
 }
 
-- (LYRMessage *)messageForMessageParts:(NSArray *)parts pushText:(NSString *)pushText;
+- (LYRMessage *)messageForMessageParts:(NSArray *)parts pushText:(NSString *)pushText contentType:(ATLMediaAttachmentType)contentType;
 {
     NSString *senderName = [[self participantForIdentifier:self.layerClient.authenticatedUserID] fullName];
-    NSDictionary *pushOptions = @{LYRMessageOptionsPushNotificationAlertKey : [NSString stringWithFormat:@"%@: %@", senderName, pushText],
-                                  LYRMessageOptionsPushNotificationSoundNameKey : ATLPushNotificationSoundName};
+    NSDictionary *pushOptions = @{};
+  
+    NSString *sentText = @"sent you a message";
+    if(contentType == ATLMediaAttachmentTypeImage){
+        sentText = @"sent an image";
+    }else if (contentType == ATLMediaAttachmentTypeLocation){
+        sentText = @"sent their location";
+    }
+    
+    if([self isOneOnOneChat]){
+        if([self allowFullPushNotifications]){
+            pushOptions=@{LYRMessageOptionsPushNotificationAlertKey : [NSString stringWithFormat:@"%@: %@", senderName, pushText],
+                          LYRMessageOptionsPushNotificationSoundNameKey : ATLPushNotificationSoundName};
+        }else{
+            //if ([self allowMiniNotifications]){
+            pushOptions=@{LYRMessageOptionsPushNotificationAlertKey : [NSString stringWithFormat:@"%@ %@", senderName, sentText],
+                          LYRMessageOptionsPushNotificationSoundNameKey : ATLPushNotificationSoundName};
+            
+        }
+    }else{
+        pushOptions=@{LYRMessageOptionsPushNotificationAlertKey : [NSString stringWithFormat:@"%@: %@", senderName, pushText],
+                      LYRMessageOptionsPushNotificationSoundNameKey : ATLPushNotificationSoundName};
+    }
+    
+    NSLog(@"Push text: %@",pushOptions);
+  
     NSError *error;
     LYRMessage *message = [self.layerClient newMessageWithParts:parts options:pushOptions error:&error];
     if (error) {
@@ -586,7 +612,7 @@ static NSString *const ATLPushNotificationSoundName = @"layerbell.caf";
 - (void)sendMessageWithLocation:(CLLocation *)location
 {
     ATLMediaAttachment *attachement = [ATLMediaAttachment mediaAttachmentWithLocation:location];
-    LYRMessage *message = [self messageForMessageParts:ATLMessagePartsWithMediaAttachment(attachement) pushText:@"Attachement: Location"];
+    LYRMessage *message = [self messageForMessageParts:ATLMessagePartsWithMediaAttachment(attachement) pushText:@"sent their location" contentType:attachement.mediaType];
     [self sendMessage:message];
 }
 

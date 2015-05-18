@@ -233,4 +233,8 @@
  */
 @property (nonatomic) BOOL marksMessagesAsRead;
 
+-(BOOL)isOneOnOneChat;
+-(BOOL)allowFullPushNotifications;
+
+-(BOOL)allowMiniNotifications;
 @end

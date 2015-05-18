@@ -20,6 +20,7 @@
 
 #import "ATLOutgoingMessageCollectionViewCell.h"
 
+
 @implementation ATLOutgoingMessageCollectionViewCell
 
 NSString *const ATLOutgoingMessageCellIdentifier = @"ATLOutgoingMessageCellIdentifier";
@@ -27,7 +28,7 @@ NSString *const ATLOutgoingMessageCellIdentifier = @"ATLOutgoingMessageCellIdent
 + (void)initialize
 {
     ATLOutgoingMessageCollectionViewCell *proxy = [self appearance];
-    proxy.bubbleViewColor = ATLBlueColor();
+    proxy.bubbleViewColor =UIColorFromRGB(0x500068); // ATLBlueColor();
     proxy.messageTextColor = [UIColor whiteColor];
     proxy.messageLinkTextColor = [UIColor whiteColor];
 }

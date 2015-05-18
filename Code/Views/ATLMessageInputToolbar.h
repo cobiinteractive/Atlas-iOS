@@ -41,7 +41,7 @@ static CGFloat const ATLVerticalMargin = 7.0f;
 // Compose View Button Constants
 static CGFloat const ATLLeftAccessoryButtonWidth = 40.0f;
 static CGFloat const ATLRightAccessoryButtonWidth = 46.0f;
-static CGFloat const ATLButtonHeight = 28.0f;
+static CGFloat const ATLButtonHeight = 35.0f;
 
 
 
@@ -71,7 +71,11 @@ static CGFloat const ATLButtonHeight = 28.0f;
 @optional
 
 - (void)messageInputToolbar:(ATLMessageInputToolbar *)messageInputToolbar
-          didSelectCapemoji:(NSInteger *)imageIndex;
+          didSelectCapemoji:(NSInteger )imageIndex;
+
+- (void)messageInputToolbar:(ATLMessageInputToolbar *)messageInputToolbar didSelectNormalemoji:(NSInteger )imageIndex;
+
+- (void)messageInputToolbar:(ATLMessageInputToolbar *)messageInputToolbar didSelectNormalemojiNamed:(NSString*)imageName;
 
 - (void)messageInputToolbar:(ATLMessageInputToolbar *)messageInputToolbar
        didTapLocationButton:(UIButton *)locationButton;

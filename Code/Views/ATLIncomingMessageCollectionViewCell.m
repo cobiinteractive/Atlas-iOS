@@ -36,7 +36,7 @@ CGFloat const ATLAvatarImageRightPadding = 7.0f;
 + (void)initialize
 {
     ATLIncomingMessageCollectionViewCell *proxy = [self appearance];
-    proxy.bubbleViewColor = ATLLightGrayColor();
+    proxy.bubbleViewColor = UIColorFromRGB(0xeeeeee);// ATLLightGrayColor();
     proxy.messageLinkTextColor = ATLBlueColor();
 }
 

@@ -157,7 +157,7 @@ static float const ATLMediaAttachmentDefaultThumbnailJPEGCompression = 0.5f;
             return nil;
         }
         
-        self.textRepresentation = @"Attachment: Image";
+        self.textRepresentation = @"sent an image";
     }
     return self;
 }
@@ -223,7 +223,7 @@ static float const ATLMediaAttachmentDefaultThumbnailJPEGCompression = 0.5f;
         // --------------------------------------------------------------------
         self.thumbnailSize = thumbnailSize;
         self.mediaType = ATLMediaAttachmentTypeImage;
-        self.textRepresentation = @"Attachment: Image";
+        self.textRepresentation = @"sent an image";
     }
     return self;
 }
@@ -244,7 +244,7 @@ static float const ATLMediaAttachmentDefaultThumbnailJPEGCompression = 0.5f;
         NSData *data = [NSJSONSerialization dataWithJSONObject:@{ ATLLocationLatitudeKey: @(location.coordinate.latitude),
                                                                   ATLLocationLongitudeKey: @(location.coordinate.longitude) } options:0 error:nil];
         self.mediaInputStream = [NSInputStream inputStreamWithData:data];
-        self.textRepresentation = @"Attachment: Location";
+        self.textRepresentation = @"sent their location";
     }
     return self;
 }

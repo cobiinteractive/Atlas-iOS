@@ -29,9 +29,7 @@ NSString *const ATLMessageInputToolbarDidChangeHeightNotification = @"ATLMessage
 
 @property (nonatomic) NSArray *mediaAttachments;
 @property (nonatomic, copy) NSAttributedString *attributedStringForMessageParts;
-@property (nonatomic) UITextView *dummyTextView;
-@property (nonatomic) CGFloat textViewMaxHeight;
-@property (nonatomic) CGFloat buttonCenterY;
+
 @property (nonatomic) BOOL firstAppearance;
 
 @end
@@ -60,16 +58,9 @@ NSString *const ATLMessageInputToolbarSendButton  = @"Message Input Toolbar Send
         self.translatesAutoresizingMaskIntoConstraints = NO;
         self.autoresizingMask = UIViewAutoresizingFlexibleWidth;
         
-        self.leftAccessoryImage = [UIImage imageNamed:@"AtlasResource.bundle/camera_dark"];
-        self.rightAccessoryImage = [UIImage imageNamed:@"AtlasResource.bundle/location_dark"];
         self.displaysRightAccessoryImage = YES;
         self.firstAppearance = YES;
         
-        self.leftAccessoryButton = [[UIButton alloc] init];
-        self.leftAccessoryButton.accessibilityLabel = ATLMessageInputToolbarCameraButton;
-        self.leftAccessoryButton.contentMode = UIViewContentModeScaleAspectFit;
-        [self.leftAccessoryButton setImage:self.leftAccessoryImage forState:UIControlStateNormal];
-        [self.leftAccessoryButton addTarget:self action:@selector(leftAccessoryButtonTapped) forControlEvents:UIControlEventTouchUpInside];
         [self addSubview:self.leftAccessoryButton];
         
         [self addSubview:self.textInputView];

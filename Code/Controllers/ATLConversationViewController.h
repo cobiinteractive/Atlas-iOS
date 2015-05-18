@@ -74,12 +74,12 @@
  @param mediaAttachments The array of `ATLMediaAttachment` items supplied via user input into the `messageInputToolbar` property of the controller.
  @return An `NSOrderedSet` of `LYRMessage` objects. If `nil` is returned, the controller will fall back to default behavior. If an empty
  `NSOrderedSet` is returned, the controller will not send any messages.
- @discussion Called when a user taps the `SEND` button on an `ATLMessageInputToolbar`. The media attachments array supplied can contain
- any media type, such as text, images, GPS location information. Applications who wish to send `LYRMessage` objects with custom `LYRMessagePart`
- MIME types not supported by default by Atlas can do so by implementing this method. All `LYRMessage` objects returned will be immediately 
- sent into the current conversation for the controller. If implemented, applications should also register custom `UICollectionViewCell` classes 
- with the controller via a call to `registerClass:forMessageCellWithReuseIdentifier:`. They should also implement the optional data source method,
- `conversationViewController:reuseIdentifierForMessage:`.
+ @discussion Called when a user taps the `rightAccessoryButton` on an `ATLMessageInputToolbar`. The media attachments array supplied can contain
+ any media type, such as text, images, GPS location information.  The media attachment array can also be empty, which indicates the `rightAccessoryButton`
+ was tapped when it contained no content, ie. the location share. Applications who wish to send `LYRMessage` objects with custom `LYRMessagePart` MIME
+ types not supported by default by Atlas can do so by implementing this method. All `LYRMessage` objects returned will be immediately sent into the
+ current conversation for the controller. If implemented, applications should also register custom `UICollectionViewCell` classes with the controller via
+ a call to `registerClass:forMessageCellWithReuseIdentifier:`. They should also implement the optional data source method, `conversationViewController:reuseIdentifierForMessage:`.
  */
 - (NSOrderedSet *)conversationViewController:(ATLConversationViewController *)viewController messagesForMediaAttachments:(NSArray *)mediaAttachments;
 
@@ -149,7 +149,7 @@
  a Layer conversation and the ability to send messages. The controller's design and functionality closely correlates with
  the conversation view controller in Messages.
 */
-@interface ATLConversationViewController : ATLBaseConversationViewController <ATLAddressBarViewControllerDelegate>
+@interface ATLConversationViewController : ATLBaseConversationViewController <ATLAddressBarViewControllerDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate>
 
 ///---------------------------------------
 /// @name Initializing a Controller
@@ -227,7 +227,7 @@
 @property (nonatomic) NSTimeInterval dateDisplayTimeInterval;
 
 /**
-@abstract A Boolean value that determines whether or not the controller marks all messages as read.
+ @abstract A Boolean value that determines whether or not the controller marks all messages as read.
  @discussion If `YES`, the controller will mark all messages in the conversation as read when it is presented.
  @default `YES`.
  */

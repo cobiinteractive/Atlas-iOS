@@ -20,8 +20,12 @@
 
 #import <objc/runtime.h>
 #import "ATLConversationListViewController.h"
+#import "ATLMessagingUtilities.h"
 
 static NSString *const ATLConversationCellReuseIdentifier = @"ATLConversationCellReuseIdentifier";
+static NSString *const ATLImageMIMETypePlaceholderText = @"Attachment: Image";
+static NSString *const ATLLocationMIMETypePlaceholderText = @"Attachment: Location";
+static NSString *const ATLGIFMIMETypePlaceholderText = @"Attachment: GIF";
 
 @interface ATLConversationListViewController () <UIActionSheetDelegate, LYRQueryControllerDelegate, UISearchBarDelegate, UISearchControllerDelegate, UISearchDisplayDelegate>
 
@@ -29,7 +33,7 @@ static NSString *const ATLConversationCellReuseIdentifier = @"ATLConversationCel
 @property (nonatomic) LYRQueryController *searchQueryController;
 @property (nonatomic) LYRConversation *conversationToDelete;
 @property (nonatomic) LYRConversation *conversationSelectedBeforeContentChange;
-@property (nonatomic) UISearchDisplayController *searchController;
+@property (nonatomic, readwrite) UISearchDisplayController *searchController;
 @property (nonatomic) UISearchBar *searchBar;
 @property (nonatomic) BOOL hasAppeared;
 
@@ -75,11 +79,6 @@ NSString *const ATLConversationTableViewAccessibilityIdentifier = @"Conversation
     _rowHeight = 76.0f;
 }
 
-- (void)loadView
-{
-    self.view = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStylePlain];
-}
-
 - (id)init
 {
     [NSException raise:NSInternalInconsistencyException format:@"Failed to call designated initializer"];
@@ -101,11 +100,10 @@ NSString *const ATLConversationTableViewAccessibilityIdentifier = @"Conversation
     [super viewDidLoad];
     self.title = ATLConversationListViewControllerTitle;
     self.accessibilityLabel = ATLConversationListViewControllerTitle;
-    
-    self.tableView.delegate = self;
-    self.tableView.dataSource = self;
+
     self.tableView.accessibilityLabel = ATLConversationTableViewAccessibilityLabel;
     self.tableView.accessibilityIdentifier = ATLConversationTableViewAccessibilityIdentifier;
+    self.tableView.isAccessibilityElement = YES;
     self.tableView.tableFooterView = [[UIView alloc] initWithFrame:CGRectZero];
     
     self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectZero];
@@ -210,8 +208,8 @@ NSString *const ATLConversationTableViewAccessibilityIdentifier = @"Conversation
 
 - (void)setupConversationDataSource
 {
-    LYRQuery *query = [LYRQuery queryWithClass:[LYRConversation class]];
-    query.predicate = [LYRPredicate predicateWithProperty:@"participants" operator:LYRPredicateOperatorIsIn value:self.layerClient.authenticatedUserID];
+    LYRQuery *query = [LYRQuery queryWithQueryableClass:[LYRConversation class]];
+    query.predicate = [LYRPredicate predicateWithProperty:@"participants" predicateOperator:LYRPredicateOperatorIsIn value:self.layerClient.authenticatedUserID];
     query.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"lastMessage.receivedAt" ascending:NO]];
 
     self.queryController = [self.layerClient queryControllerWithQuery:query];
@@ -233,7 +231,9 @@ NSString *const ATLConversationTableViewAccessibilityIdentifier = @"Conversation
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    UITableViewCell<ATLConversationPresenting> *conversationCell = [tableView dequeueReusableCellWithIdentifier:ATLConversationCellReuseIdentifier forIndexPath:indexPath];
+    NSString *reuseIdentifier = [self reuseIdentifierForConversation:nil atIndexPath:indexPath];
+    
+    UITableViewCell<ATLConversationPresenting> *conversationCell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier forIndexPath:indexPath];
     [self configureCell:conversationCell atIndexPath:indexPath];
     return conversationCell;
 }
@@ -265,6 +265,15 @@ NSString *const ATLConversationTableViewAccessibilityIdentifier = @"Conversation
     } else {
         @throw [NSException exceptionWithName:NSInternalInconsistencyException reason:@"Conversation View Delegate must return a conversation label" userInfo:nil];
     }
+    
+    NSString *lastMessageText;
+    if ([self.dataSource respondsToSelector:@selector(conversationListViewController:lastMessageTextForConversation:)]) {
+        lastMessageText = [self.dataSource conversationListViewController:self lastMessageTextForConversation:conversation];
+    }
+    if (!lastMessageText) {
+        lastMessageText = [self defaultLastMessageTextForConversation:conversation];
+    }
+    [conversationCell updateWithLastMessageText:lastMessageText];
 }
 
 #pragma mark - Reloading Conversations
@@ -354,6 +363,20 @@ NSString *const ATLConversationTableViewAccessibilityIdentifier = @"Conversation
     self.conversationToDelete = nil;
 }
 
+#pragma mark - Data Source
+
+- (NSString *)reuseIdentifierForConversation:(LYRConversation *)conversation atIndexPath:(NSIndexPath *)indexPath
+{
+    NSString *reuseIdentifier;
+    if ([self.dataSource respondsToSelector:@selector(reuseIdentifierForConversationListViewController:)]) {
+        reuseIdentifier = [self.dataSource reuseIdentifierForConversationListViewController:self];
+    }
+    if (!reuseIdentifier) {
+        reuseIdentifier = ATLConversationCellReuseIdentifier;
+    }
+    return reuseIdentifier;
+}
+
 #pragma mark - LYRQueryControllerDelegate
 
 - (void)queryControllerWillChangeContent:(LYRQueryController *)queryController
@@ -425,8 +448,8 @@ NSString *const ATLConversationTableViewAccessibilityIdentifier = @"Conversation
             if (![searchString isEqualToString:controller.searchBar.text]) return;
             NSSet *participantIdentifiers = [filteredParticipants valueForKey:@"participantIdentifier"];
             
-            LYRQuery *query = [LYRQuery queryWithClass:[LYRConversation class]];
-            query.predicate = [LYRPredicate predicateWithProperty:@"participants" operator:LYRPredicateOperatorIsIn value:participantIdentifiers];
+            LYRQuery *query = [LYRQuery queryWithQueryableClass:[LYRConversation class]];
+            query.predicate = [LYRPredicate predicateWithProperty:@"participants" predicateOperator:LYRPredicateOperatorIsIn value:participantIdentifiers];
             query.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"lastMessage.receivedAt" ascending:NO]];
             self.searchQueryController = [self.layerClient queryControllerWithQuery:query];
             
@@ -448,6 +471,27 @@ NSString *const ATLConversationTableViewAccessibilityIdentifier = @"Conversation
 }
 
 #pragma mark - Helpers
+
+- (NSString *)defaultLastMessageTextForConversation:(LYRConversation *)conversation
+{
+    NSString *lastMessageText;
+    LYRMessage *lastMessage = conversation.lastMessage;
+    LYRMessagePart *messagePart = lastMessage.parts[0];
+        if ([messagePart.MIMEType isEqualToString:ATLMIMETypeTextPlain]) {
+            lastMessageText = [[NSString alloc] initWithData:messagePart.data encoding:NSUTF8StringEncoding];
+        } else if ([messagePart.MIMEType isEqualToString:ATLMIMETypeImageJPEG]) {
+            lastMessageText = ATLImageMIMETypePlaceholderText;
+        } else if ([messagePart.MIMEType isEqualToString:ATLMIMETypeImagePNG]) {
+            lastMessageText = ATLImageMIMETypePlaceholderText;
+        } else if ([messagePart.MIMEType isEqualToString:ATLMIMETypeImageGIF]) {
+            lastMessageText = ATLGIFMIMETypePlaceholderText;
+        } else if ([messagePart.MIMEType isEqualToString:ATLMIMETypeLocation]) {
+            lastMessageText = ATLLocationMIMETypePlaceholderText;
+        } else {
+            lastMessageText = ATLImageMIMETypePlaceholderText;
+        }
+    return lastMessageText;
+}
 
 - (void)deleteConversationAtIndexPath:(NSIndexPath *)indexPath withDeletionMode:(LYRDeletionMode)deletionMode
 {

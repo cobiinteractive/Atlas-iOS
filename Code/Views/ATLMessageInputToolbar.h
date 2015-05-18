@@ -133,7 +133,7 @@ static CGFloat const ATLButtonHeight = 35.0f;
 
 /**
  @abstract The left accessory button for the view. 
- @discussion By default, the button displays a camera icon.
+ @discussion By default, the button displays a camera icon. If set to `nil` the `textInputView` will expand to the left edge of the toolbar.
  */
 @property (nonatomic) UIButton *leftAccessoryButton;
  
@@ -142,6 +142,35 @@ static CGFloat const ATLButtonHeight = 35.0f;
  @discussion By default, the button displays the text "SEND".
  */
 @property (nonatomic) UIButton *rightAccessoryButton;
+
+/**
+ @abstract The font color for the right accessory button in active state.
+ */
+@property (nonatomic) UIColor *rightAccessoryButtonActiveColor UI_APPEARANCE_SELECTOR;
+
+/**
+ @abstract The font color for the right accessory button in disabled state.
+ */
+@property (nonatomic) UIColor *rightAccessoryButtonDisabledColor UI_APPEARANCE_SELECTOR;
+
+/**
+ @abstract The image displayed on left accessory button.
+ @default A `camera` icon.
+ */
+@property (nonatomic) UIImage *leftAccessoryImage;
+
+/**
+ @abstract The image displayed on right accessory button.
+ @default A `location` icon.
+ */
+@property (nonatomic) UIImage *rightAccessoryImage;
+
+/**
+ @abstract Determines whether or not the right accessory button displays an icon. 
+ @disucssion If NO, the right accessory button will display the text `SEND` at all times.
+ @default YES
+ */
+@property(nonatomic) BOOL displaysRightAccessoryImage;
 
 /**
  @abstract An automatically resizing message composition field.

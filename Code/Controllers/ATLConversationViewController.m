@@ -53,6 +53,10 @@
 
 static NSInteger const ATLMoreMessagesSection = 0;
 static NSString *const ATLPushNotificationSoundName = @"layerbell.caf";
+static NSString *const ATLDefaultPushAlertGIF = @"sent you a GIF.";
+static NSString *const ATLDefaultPushAlertImage = @"sent you a photo.";
+static NSString *const ATLDefaultPushAlertLocation = @"sent you a location.";
+static NSString *const ATLDefaultPushAlertText = @"sent you a message.";
 
 + (instancetype)conversationViewControllerWithLayerClient:(LYRClient *)layerClient;
 {
@@ -89,6 +93,7 @@ static NSString *const ATLPushNotificationSoundName = @"layerbell.caf";
 {
     _dateDisplayTimeInterval = 60*60;
     _marksMessagesAsRead = YES;
+    _shouldDisplayAvatarItemForOneOtherParticipant = NO;
     _typingParticipantIDs = [NSMutableOrderedSet new];
     _sectionHeaders = [NSHashTable weakObjectsHashTable];
     _sectionFooters = [NSHashTable weakObjectsHashTable];
@@ -189,7 +194,19 @@ static NSString *const ATLPushNotificationSoundName = @"layerbell.caf";
 - (void)fetchLayerMessages
 {
     if (!self.conversation) return;
-    self.conversationDataSource = [ATLConversationDataSource dataSourceWithLayerClient:self.layerClient conversation:self.conversation];
+    
+    LYRQuery *query = [LYRQuery queryWithQueryableClass:[LYRMessage class]];
+    query.predicate = [LYRPredicate predicateWithProperty:@"conversation" predicateOperator:LYRPredicateOperatorIsEqualTo value:self.conversation];
+    query.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"position" ascending:YES]];
+    
+    if ([self.dataSource respondsToSelector:@selector(conversationViewController:willLoadWithQuery:)]) {
+        query = [self.dataSource conversationViewController:self willLoadWithQuery:query];
+        if (![query isKindOfClass:[LYRQuery class]]){
+            @throw [NSException exceptionWithName:NSInvalidArgumentException reason:@"Data source must return an `LYRQuery` object." userInfo:nil];
+        }
+    }
+    
+    self.conversationDataSource = [ATLConversationDataSource dataSourceWithLayerClient:self.layerClient query:query];
     self.conversationDataSource.queryController.delegate = self;
     self.showingMoreMessagesIndicator = [self.conversationDataSource moreMessagesAvailable];
     [self.collectionView reloadData];
@@ -202,7 +219,7 @@ static NSString *const ATLPushNotificationSoundName = @"layerbell.caf";
     // Configure avatar image display
     NSMutableSet *otherParticipantIDs = [self.conversation.participants mutableCopy];
     if (self.layerClient.authenticatedUserID) [otherParticipantIDs removeObject:self.layerClient.authenticatedUserID];
-    self.shouldDisplayAvatarItem = otherParticipantIDs.count > 1;
+    self.shouldDisplayAvatarItem = (otherParticipantIDs.count > 1) ? YES : self.shouldDisplayAvatarItemForOneOtherParticipant;
     
     // Configure message bar button enablement
     BOOL shouldEnableButton = self.conversation ? YES : NO;
@@ -933,7 +950,7 @@ static NSString *const ATLPushNotificationSoundName = @"layerbell.caf";
     });
 }
 
-- (void)reloadCellsForMessagesSentByParticipantWithIdentitifier:(NSString *)participantIdentifier
+- (void)reloadCellsForMessagesSentByParticipantWithIdentifier:(NSString *)participantIdentifier
 {
     dispatch_async(self.animationQueue, ^{
         // Query for the All the Messages in the set of identifiers we have where sent by user == participantIdentifier

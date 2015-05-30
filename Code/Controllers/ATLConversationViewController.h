@@ -254,4 +254,11 @@
 -(BOOL)allowFullPushNotifications;
 
 -(BOOL)allowMiniNotifications;
+
+/**
+@abstract A Boolean value that determines whether or not an avatar is shown if there is only one other participant in the conversation.
+@default `NO`.
+*/
+@property (nonatomic) BOOL shouldDisplayAvatarItemForOneOtherParticipant;
+
 @end
